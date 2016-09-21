@@ -4,6 +4,8 @@ info:
   title: Test API
     
 basePath: /api/v1
+x-securityDefinitions:
+  $ref: 'public/security/xSecurityDefinitions.yaml'
 produces:
   - application/json
 paths:

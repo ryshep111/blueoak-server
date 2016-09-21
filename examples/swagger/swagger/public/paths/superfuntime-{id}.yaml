@@ -1,5 +1,8 @@
 get:
   summary: Get super fun time
+  x-security:
+    hmac_auth:
+        - 'api:read:superfuntime'
   operationId: getFunTimeById
   tags:
     - Fun Times

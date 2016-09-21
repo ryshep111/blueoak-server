@@ -1,0 +1,4 @@
+hmac_auth:
+  type: hmac
+  description: API HMAC signed message authentication strategy
+  method: apiUserService.getApiUserById
