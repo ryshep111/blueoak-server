@@ -1,0 +1,9 @@
+{
+  "swagger_spec_url": "http://localhost:3000/swagger/api-v1",
+  "auth": {
+    "HmacAuthorization": {
+      "type": "customSigner",
+      "path": "../../../lib/HmacAuth.js"
+    }
+  }
+}
