@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     passport = require('passport'),
     authorization = require('express-authorization'),
-    HmacStrategy = require('passport-hmac-strategy').Strategy
+    HmacStrategy = require('passport-hmac-strategy').Strategy;
 var log, cfg;
 
 var httpMethods = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'];

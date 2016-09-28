@@ -55,16 +55,6 @@
     "polymorphicValidation": "on",
     "validateResponseModels": false
   },
-  "couchdb": {
-    "connections": {
-      "local": {
-        "url": "http://127.0.0.1:5984/",
-        "databases": {
-          "apikey": {}
-        }
-      }
-    }
-  },
   "node": {
     "version": {
       "min": "^4.4.4 || ^5.11.1 || ^6.1.0",

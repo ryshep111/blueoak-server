@@ -41,23 +41,22 @@ function _addToCache(name, id, user) {
  * @return {[type]}      Returns the ApiUser or undefined (if user was found)
  */
 function _retrieveFromDb(key, view) {
-    return couch.get('apikey', function (db) {
-        if (!db) {
-            log.error('apikey database not available');
-            return q.Promise(function (resolve) {
-                resolve(undefined);
-            });
-        }
+    var db = couch.get('apikey');
+    if (!db) {
+        log.error('apikey database not available');
+        return q.Promise(function (resolve) {
+            resolve(undefined);
+        });
+    }
 
-        return q.nfcall(db.view, 'apikey', view, { key: key })
-            .then(function (doc) {
-                if (doc[0] && doc[0].rows.length <= 0) {
-                    return undefined;
-                }
-                var userData = doc[0].rows[0].value;
-                return _addToCache(key, userData._id, userData);
-            });
-    });
+    return q.nfcall(db.view, 'apikey', view, { key: key })
+        .then(function (doc) {
+            if (doc[0] && doc[0].rows.length <= 0) {
+                return undefined;
+            }
+            var userData = doc[0].rows[0].value;
+            return _addToCache(key, userData._id, userData);
+        });
 }
 
 
@@ -90,16 +89,15 @@ function init(logger, bosCouchdb, localCache) {
     Cache  = localCache;
 
     //set up apiKey database monitoring
-    couch.get('apikey', function (db) {
-        // monitor changes to the couch db
-        var changesFeed = db.follow({since: 'now'});
-        changesFeed.on('start', function () {
-            changesFeed.on('change', function (change) {
-                _flushApiUserById(change.id);
-            });
+    var db = couch.get('apikey');
+    // monitor changes to the couch db
+    var changesFeed = db.follow({since: 'now'});
+    changesFeed.on('start', function () {
+        changesFeed.on('change', function (change) {
+            _flushApiUserById(change.id);
         });
-        changesFeed.follow();
     });
+    changesFeed.follow();
     log.info('ApiUserService initialized');
 }
 
