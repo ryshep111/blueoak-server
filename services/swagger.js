@@ -10,6 +10,7 @@ var async = require('async');
 var parser = require('swagger-parser');
 var swaggerUtil = require('../lib/swaggerUtil');
 var tv4 = require('tv4');
+var _ = require('lodash');
 
 var specs = {
     dereferenced: {},
@@ -80,7 +81,10 @@ exports.init = function (logger, config, callback) {
             })
             .then(function (dereferencedApi) {
                 specs.dereferenced[handlerName] = dereferencedApi;
-                getDiscriminatorObjectsForSchemas(dereferencedApi.paths, responseModelValidationLevel);
+                if (polymorphicValidation !== 'off') {
+                    getDiscriminatorObjectsForSchemas(dereferencedApi.paths, responseModelValidationLevel);
+                }
+                flattenModelDefinitions(dereferencedApi.definitions);
                 return swagCallback();
             })
             .catch(function (error) {
@@ -130,6 +134,42 @@ exports.getPrettySpecs = function () {
 exports.addFormat = function (format, validationFunction) {
     tv4.addFormat(format, validationFunction);
 };
+
+function flattenModelDefinitions(definitions) {
+    if (!definitions) {
+        return;
+    }
+
+    Object.keys(definitions).forEach(function (defn) {
+        if (definitions[defn].hasOwnProperty('allOf')) {
+            var flattenedDefn = {};
+            for (var i = 0; i < definitions[defn].allOf.length; i++) {
+                //have to clone so that inherited definitions are not affected
+                definitions[defn].allOf[i] = _.cloneDeep(definitions[defn].allOf[i]);
+                mergeToFlatModel(flattenedDefn, definitions[defn].allOf[i]);
+            }
+            flattenedDefn.required = flattenedDefn.required ? Object.keys(flattenedDefn.required) : undefined;
+            definitions[defn] = flattenedDefn;
+        }
+    });
+}
+
+function mergeToFlatModel(flatModel, model) {
+    //have to convert 'required' array to object for merging purposes
+    if (model.required && Array.isArray(model.required)) {
+        model.required = model.required.reduce(function (reqsAsObj, reqdPropName, arrayIndex) {
+            reqsAsObj[reqdPropName] = arrayIndex;
+            return reqsAsObj;
+        }, {});
+    }
+    _.merge(flatModel, model);
+    if (model.hasOwnProperty('allOf')) {
+        model.allOf.forEach(function (subModel) {
+            mergeToFlatModel(flatModel, subModel);
+        });
+    }
+    flatModel.allOf = undefined;
+}
 
 function getDiscriminatorObjectsForSchemas(paths, doResponseValidation) {
     var pathKeys = Object.keys(paths);
